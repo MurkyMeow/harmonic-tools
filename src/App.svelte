@@ -5,16 +5,19 @@
   import FilterBoard from './FilterBoard.svelte';
   import OscillatorNode from './OscillatorNode.svelte';
 
-  const MIN_FREQ = 100;
-  const MAX_FREQ = 3000;
-  const FREQ_STEP = 50;
-
-  const PARTIAL_BOARD_H = 300;
+  let minFreq = 100;
+  let maxFreq = 3000;
+  let freqStep = 50;
 
   const MAX_AMPLITUDE = 20;
   const MAX_GAIN = 20;
 
-  const partialAmplitudes = Array.from({ length: Math.floor((MAX_FREQ - MIN_FREQ) / FREQ_STEP) }, () => 0);
+  const PARTIAL_BOARD_H = 300;
+
+  let partialAmplitudes = Array.from({ length: Math.floor((maxFreq - minFreq) / freqStep) }, () => 0);
+
+  // react on length changes
+  $: partialAmplitudes.length = Math.floor((maxFreq - minFreq) / freqStep);
 
   const filters = [
     {
@@ -75,11 +78,11 @@
 
   $: partialEvents = draggingPartialIdx > 0 ? ({
     onPointerMove(e: MouseEvent) {
-      const current = partialAmplitudes[draggingPartialIdx];
+      const current = partialAmplitudes[draggingPartialIdx] || 0;
 
-      const delta = MAX_AMPLITUDE / PARTIAL_BOARD_H * e.movementY;
+      const next = current - MAX_AMPLITUDE / PARTIAL_BOARD_H * e.movementY;
 
-      partialAmplitudes[draggingPartialIdx] = Math.min(Math.max(current - delta, 0), MAX_AMPLITUDE);
+      partialAmplitudes[draggingPartialIdx] = Math.min(Math.max(next, 0), MAX_AMPLITUDE);
     },
     onPointerUp() {
       draggingPartialIdx = -1;
@@ -98,9 +101,21 @@
 
 <main>
   <div>
+      <div class="options">
+        <div>
+          Min frequency: <input type="number" min="0" bind:value={minFreq} />
+        </div>
+        <div>
+          Max frequency: <input type="number" min="0" bind:value={maxFreq} />
+        </div>
+        <div>
+          Frequency step: <input type="number" min="1" bind:value={freqStep} />
+        </div>
+      </div>
+
       <FilterBoard
-        minFreq={MIN_FREQ}
-        maxFreq={MAX_FREQ}
+        minFreq={minFreq}
+        maxFreq={maxFreq}
         maxGain={MAX_GAIN}
         filters={filters}
         onMove={onFilterMove}
@@ -111,10 +126,10 @@
           <div class="partial">
             <div class="partial-handle" on:pointerdown={() => draggingPartialIdx = i}></div>
             <div class="partial-body" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * PARTIAL_BOARD_H}px` : undefined}></div>
-            <div class="partial-freq">{MIN_FREQ + i * FREQ_STEP}</div>
+            <div class="partial-freq">{minFreq + i * freqStep}</div>
           </div>
           {#if isPlaying && amplitude > 0}
-            <OscillatorNode audioCtx={audioCtx} audioParent={filterNodes[0]} amplitude={amplitude / MAX_AMPLITUDE} freq={MIN_FREQ + i * FREQ_STEP} />
+            <OscillatorNode audioCtx={audioCtx} audioParent={filterNodes[0]} amplitude={amplitude / MAX_AMPLITUDE} freq={minFreq + i * freqStep} />
           {/if}
         {/each}
       </div>
@@ -131,6 +146,11 @@
     max-width: 1200px;
     padding: 0 20px;
     margin: auto;
+  }
+
+  .options {
+    text-align: center;
+    margin-bottom: 20px;
   }
 
   .partial-board {
