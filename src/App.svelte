@@ -2,6 +2,7 @@
   // ===================
   // THIS IS SUCH A MESS
   // ===================
+  import FilterBoard from "./FilterBoard.svelte";
 
   let slope = 1;
   let fundamental = 100;
@@ -46,63 +47,6 @@
   $: minFreq = freqs.reduce((acc, freq) => freq < acc ? freq : acc);
   $: maxFreq = freqs.reduce((acc, freq) => freq > acc ? freq : acc);
   $: maxAmplitude = partials.reduce((acc, { amplitude }) => amplitude > acc ? amplitude : acc, 0);
-
-  const H = 200;
-
-  let gcanvas: HTMLCanvasElement | undefined
-
-  function drawFilters(canvas: HTMLCanvasElement) {
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return;
-
-    gcanvas = canvas;
-
-    const RESOLUTION = 4;
-    const LINE_WIDTH = 3;
-    const { width, height } = canvas;
-
-    const size = Math.floor(width / RESOLUTION)
-    const input = Array.from({ length: size }, (_, i) => i / size * (maxFreq - minFreq) + minFreq);
-    const output = Array(size).fill(0);
-
-    for (const filter of filters) {
-      for (let i = 0; i < size; i += 1) {
-        output[i] += filter.gain * 5 * Math.exp(-Math.pow(input[i] - filter.centerFreq, 2) / Math.pow(filter.bandwidth / 2, 2))
-      }
-    }
-
-    ctx.lineWidth = LINE_WIDTH;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.beginPath()
-    ctx.moveTo(0, H);
-
-    for (let i = 0; i < size; i += 1) {
-      ctx.lineTo(i * RESOLUTION, H - output[i] - LINE_WIDTH);
-    }
-
-    ctx.stroke();
-    ctx.closePath()
-  }
-
-  const onPointerDown = (filterIdx: number) => () => {
-    const onPointerMove = (e: MouseEvent) => {
-      if (!gcanvas) return;
-
-      const { width } = gcanvas;
-
-      // filters[filterIdx].gain -= e.movementY;
-      filters[filterIdx].centerFreq += (maxFreq - minFreq) / width * e.movementX;
-
-      drawFilters(gcanvas);
-    }
-
-    document.addEventListener('pointermove', onPointerMove)
-
-    document.addEventListener('pointerup', () => {
-      document.removeEventListener('pointermove', onPointerMove)
-    }, { once: true })
-  };
 
   const filterNodes = filters.map(filter => {
     const filterNode = audioCtx.createBiquadFilter();
@@ -157,19 +101,15 @@
     nodes.forEach(({ oscillator }) => oscillator.stop());
   }
 
-  $: {
-    if (gcanvas && fundamental) drawFilters(gcanvas);
-  }
+  const onFilterMove = (filterIdx: number, dFreq: number, dGain: number) => {
+    filters[filterIdx].centerFreq += dFreq;
+    filters[filterIdx].gain += dGain;
+  };
 </script>
 
 <main>
   <div>
-      <div class="filter-board">
-        {#each filters as { centerFreq, gain }, i}
-          <div class="filter-handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain}px" on:pointerdown={onPointerDown(i)} />
-        {/each}
-        <canvas use:drawFilters width="800" height="200" />
-      </div>
+      <FilterBoard minFreq={minFreq} maxFreq={maxFreq} filters={filters} onMove={onFilterMove} />
 
       <div>
         <div>Slope</div>
@@ -216,23 +156,6 @@
     bottom: 0;
     width: 2px;
     background: slateblue;
-  }
-
-  .filter-board {
-    position: relative;
-    height: 200px;
-  }
-
-  .filter-handle {
-    user-select: none;
-    position: absolute;
-    cursor: pointer;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: orange;
-    border: 1px solid #000;
-    transform: translate(-50%, 0);
   }
 
   .freq-axis {
