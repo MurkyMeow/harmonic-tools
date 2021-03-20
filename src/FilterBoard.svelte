@@ -69,6 +69,7 @@
     width = wrap.clientWidth;
     height = wrap.clientHeight;
 
+    // ctx.lineWidth resets after resize, set it again
     tick().then(() => {
       if (ctx) ctx.lineWidth = LINE_WIDTH;
     });
