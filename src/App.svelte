@@ -6,7 +6,7 @@
   import OscillatorNode from './OscillatorNode.svelte';
 
   const MIN_FREQ = 100;
-  const MAX_FREQ = 2000;
+  const MAX_FREQ = 3000;
   const FREQ_STEP = 50;
 
   const PARTIAL_BOARD_H = 300;
@@ -128,7 +128,7 @@
 
 <style>
   main {
-    max-width: 800px;
+    max-width: 1200px;
     height: 200px;
     margin: auto;
   }
