@@ -6,21 +6,22 @@
   export let maxFreq: number;
   export let onMove: (filterIdx: number, dFreq: number, dGain: number) => void;
 
-  let canvas: HTMLCanvasElement
+  let canvas: HTMLCanvasElement;
 
-  const onPointerDown = (filterIdx: number) => () => {
-    const { width } = canvas;
+  let draggingFilterIdx = -1;
 
-    const onPointerMove = (e: MouseEvent) => {
-      onMove(filterIdx, (maxFreq - minFreq) / width * e.movementX, 0 && e.movementY);
-    };
-
-    document.addEventListener('pointermove', onPointerMove);
-
-    document.addEventListener('pointerup', () => {
-      document.removeEventListener('pointermove', onPointerMove);
-    }, { once: true });
-  };
+  $: events = draggingFilterIdx >= 0 ? ({
+    onPointerMove(e: MouseEvent) {
+      const { width } = canvas;
+      onMove(draggingFilterIdx, (maxFreq - minFreq) / width * e.movementX, 0 && e.movementY);
+    },
+    onPointerUp() {
+      draggingFilterIdx = -1;
+    },
+    onPointerLeave() {
+      draggingFilterIdx = -1;
+    },
+  }) : null;
 
   const RESOLUTION = 4;
   const LINE_WIDTH = 3;
@@ -61,9 +62,15 @@
   }
 </script>
 
+<svelte:window
+  on:pointermove={events?.onPointerMove}
+  on:pointerup={events?.onPointerUp}
+  on:pointerleave={events?.onPointerLeave}
+/>
+
 <div class="wrap">
   {#each filters as { centerFreq, gain }, i}
-    <div class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain}px" on:pointerdown={onPointerDown(i)} />
+    <div class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain}px" on:pointerdown={() => draggingFilterIdx = i} />
   {/each}
   <canvas bind:this={canvas} width="800" height="200" />
 </div>

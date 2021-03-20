@@ -73,21 +73,30 @@
 
   let draggingPartialIdx = -1;
 
-  $: partialEvents = draggingPartialIdx > 0 && ({
-    onpointermove(e: MouseEvent) {
+  $: partialEvents = draggingPartialIdx > 0 ? ({
+    onPointerMove(e: MouseEvent) {
       const current = partialAmplitudes[draggingPartialIdx];
 
       const delta = MAX_AMPLITUDE / PARTIAL_BOARD_H * e.movementY;
 
       partialAmplitudes[draggingPartialIdx] = Math.min(Math.max(current - delta, 0), MAX_AMPLITUDE);
     },
-    onpointerup() {
+    onPointerUp() {
       draggingPartialIdx = -1;
     },
-  })
+    onPointerLeave() {
+      draggingPartialIdx = -1;
+    },
+  }) : null;
 </script>
 
-<main {...partialEvents}>
+<svelte:window
+  on:pointermove={partialEvents?.onPointerMove}
+  on:pointerup={partialEvents?.onPointerUp}
+  on:pointerleave={partialEvents?.onPointerLeave}
+/>
+
+<main>
   <div>
       <FilterBoard minFreq={MIN_FREQ} maxFreq={MAX_FREQ} filters={filters} onMove={onFilterMove} />
 
