@@ -9,15 +9,14 @@
   const MAX_FREQ = 4000;
   const FREQ_STEP = 100;
 
-  const MAX_AMPLITUDE = 50;
+  const PARTIAL_BOARD_H = 300;
+
+  const MAX_AMPLITUDE = 20;
 
   let slope = 1;
   let fundamental = 100;
 
   const partialAmplitudes = Array.from({ length: Math.floor((MAX_FREQ - MIN_FREQ) / FREQ_STEP) }, () => 0);
-
-  partialAmplitudes[100 / FREQ_STEP] = 10;
-  partialAmplitudes[200 / FREQ_STEP] = 10;
 
   const filters = [
     {
@@ -75,9 +74,24 @@
     filters[filterIdx].centerFreq += dFreq;
     filters[filterIdx].gain += dGain;
   };
+
+  let draggingPartialIdx = -1;
+
+  $: partialEvents = draggingPartialIdx > 0 && ({
+    onpointermove(e: MouseEvent) {
+      const current = partialAmplitudes[draggingPartialIdx];
+
+      const delta = MAX_AMPLITUDE / PARTIAL_BOARD_H * e.movementY;
+
+      partialAmplitudes[draggingPartialIdx] = Math.min(Math.max(current - delta, 0), MAX_AMPLITUDE);
+    },
+    onpointerup() {
+      draggingPartialIdx = -1;
+    },
+  })
 </script>
 
-<main>
+<main {...partialEvents}>
   <div>
       <FilterBoard minFreq={MIN_FREQ} maxFreq={MAX_FREQ} filters={filters} onMove={onFilterMove} />
 
@@ -91,10 +105,10 @@
         <input type="range" min="100" max="200" step="20" on:input={e => fundamental = Number(e.currentTarget.value)} value={fundamental}>
       </div>
 
-      <div class="partial-board">
+      <div class="partial-board" style="height: {PARTIAL_BOARD_H}px">
         {#each partialAmplitudes as amplitude, i}
           <div class="partial" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * 100}%` : undefined}>
-            <div class="partial-handle"></div>
+            <div class="partial-handle" on:pointerdown={() => draggingPartialIdx = i}></div>
             <div class="partial-body"></div>
           </div>
           {#if isPlaying > 0 && amplitude > 0}
@@ -123,23 +137,28 @@
   }
 
   .partial-board {
+    --handle-size: 10px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    height: 300px;
+  }
+
+  .partial {
+    user-select: none;
+    min-height: var(--handle-size);
   }
 
   .partial-handle {
     cursor: pointer;
-    width: 10px;
-    height: 10px;
+    width: var(--handle-size);
+    height: var(--handle-size);
     border-radius: 50%;
     background: blue;
   }
 
   .partial-body {
     width: 2px;
-    height: calc(100% - 10px);
+    height: calc(100% - var(--handle-size));
     margin: 0 auto;
     background: blue;
   }
