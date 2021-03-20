@@ -2,15 +2,22 @@
   // ===================
   // THIS IS SUCH A MESS
   // ===================
-  import FilterBoard from "./FilterBoard.svelte";
+  import FilterBoard from './FilterBoard.svelte';
+  import OscillatorNode from './OscillatorNode.svelte';
+
+  const MIN_FREQ = 100;
+  const MAX_FREQ = 4000;
+  const FREQ_STEP = 100;
+
+  const MAX_AMPLITUDE = 50;
 
   let slope = 1;
   let fundamental = 100;
 
-  const partials = Array.from({ length: 40 }, (_, i) => ({
-    freq: fundamental * (i + 1),
-    amplitude: 0,
-  }));
+  const partialAmplitudes = Array.from({ length: Math.floor((MAX_FREQ - MIN_FREQ) / FREQ_STEP) }, () => 0);
+
+  partialAmplitudes[100 / FREQ_STEP] = 10;
+  partialAmplitudes[200 / FREQ_STEP] = 10;
 
   const filters = [
     {
@@ -43,11 +50,6 @@
     isPlaying = isPlaying <= 0 ? 1 : 0;
   }
 
-  $: freqs = partials.map(p => p.freq);
-  $: minFreq = freqs.reduce((acc, freq) => freq < acc ? freq : acc);
-  $: maxFreq = freqs.reduce((acc, freq) => freq > acc ? freq : acc);
-  $: maxAmplitude = partials.reduce((acc, { amplitude }) => amplitude > acc ? amplitude : acc, 0);
-
   const filterNodes = filters.map(filter => {
     const filterNode = audioCtx.createBiquadFilter();
     filterNode.type = 'peaking';
@@ -69,38 +71,6 @@
     return node
   });
 
-  const nodes = partials.map(partial => {
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = partial.amplitude;
-
-    const oscillator = audioCtx.createOscillator();
-    oscillator.type = 'sine';
-    oscillator.frequency.value = partial.freq;
-
-    oscillator.connect(gainNode);
-    gainNode.connect(filterNodes[0]);
-
-    return { oscillator, gainNode };
-  })
-
-  $: {
-    for (let i = 0; i < partials.length; i += 1) {
-      const freq = fundamental * (i + 1);
-      const amp = 1 / (i**slope + 2);
-      const {gainNode, oscillator} = nodes[i];
-      partials[i].amplitude = amp;
-      partials[i].freq = freq;
-      gainNode.gain.value = amp;
-      oscillator.frequency.value = freq;
-    }
-  }
-
-  $: if (isPlaying === 1) {
-    nodes.forEach(({ oscillator }) => oscillator.start());
-  } else if (isPlaying === 0) {
-    nodes.forEach(({ oscillator }) => oscillator.stop());
-  }
-
   const onFilterMove = (filterIdx: number, dFreq: number, dGain: number) => {
     filters[filterIdx].centerFreq += dFreq;
     filters[filterIdx].gain += dGain;
@@ -109,7 +79,7 @@
 
 <main>
   <div>
-      <FilterBoard minFreq={minFreq} maxFreq={maxFreq} filters={filters} onMove={onFilterMove} />
+      <FilterBoard minFreq={MIN_FREQ} maxFreq={MAX_FREQ} filters={filters} onMove={onFilterMove} />
 
       <div>
         <div>Slope</div>
@@ -122,14 +92,20 @@
       </div>
 
       <div class="partial-board">
-        {#each partials as { freq, amplitude }}
-          <div class="partial" style="left: {(freq - minFreq) / (maxFreq - minFreq) * 100}%; height: {amplitude / maxAmplitude * 100}%" />
+        {#each partialAmplitudes as amplitude, i}
+          <div class="partial" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * 100}%` : undefined}>
+            <div class="partial-handle"></div>
+            <div class="partial-body"></div>
+          </div>
+          {#if isPlaying > 0 && amplitude > 0}
+            <OscillatorNode audioCtx={audioCtx} audioParent={filterNodes[0]} amplitude={amplitude / MAX_AMPLITUDE} freq={MIN_FREQ + i * FREQ_STEP} />
+          {/if}
         {/each}
       </div>
 
       <div class="freq-axis">
-        <div>{minFreq}Hz</div>
-        <div class="max-freq">{maxFreq}Hz</div>
+        <div>{MIN_FREQ}Hz</div>
+        <div class="max-freq">{MAX_FREQ}Hz</div>
       </div>
 
       <div class="controls">
@@ -147,15 +123,25 @@
   }
 
   .partial-board {
-    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
     height: 300px;
   }
 
-  .partial {
-    position: absolute;
-    bottom: 0;
+  .partial-handle {
+    cursor: pointer;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: blue;
+  }
+
+  .partial-body {
     width: 2px;
-    background: slateblue;
+    height: calc(100% - 10px);
+    margin: 0 auto;
+    background: blue;
   }
 
   .freq-axis {
