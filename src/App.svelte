@@ -129,7 +129,7 @@
 <style>
   main {
     max-width: 1200px;
-    height: 200px;
+    padding: 0 20px;
     margin: auto;
   }
 
