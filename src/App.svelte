@@ -6,8 +6,8 @@
   import OscillatorNode from './OscillatorNode.svelte';
 
   const MIN_FREQ = 100;
-  const MAX_FREQ = 4000;
-  const FREQ_STEP = 100;
+  const MAX_FREQ = 2000;
+  const FREQ_STEP = 50;
 
   const PARTIAL_BOARD_H = 300;
 
@@ -43,11 +43,7 @@
 
   const audioCtx = new AudioContext();
 
-  let isPlaying = -1;
-
-  function handlePlay() {
-    isPlaying = isPlaying <= 0 ? 1 : 0;
-  }
+  let isPlaying = true;
 
   const filterNodes = filters.map(filter => {
     const filterNode = audioCtx.createBiquadFilter();
@@ -107,23 +103,19 @@
 
       <div class="partial-board" style="height: {PARTIAL_BOARD_H}px">
         {#each partialAmplitudes as amplitude, i}
-          <div class="partial" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * 100}%` : undefined}>
+          <div class="partial">
             <div class="partial-handle" on:pointerdown={() => draggingPartialIdx = i}></div>
-            <div class="partial-body"></div>
+            <div class="partial-body" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * PARTIAL_BOARD_H}px` : undefined}></div>
+            <div class="partial-freq">{MIN_FREQ + i * FREQ_STEP}</div>
           </div>
-          {#if isPlaying > 0 && amplitude > 0}
+          {#if isPlaying && amplitude > 0}
             <OscillatorNode audioCtx={audioCtx} audioParent={filterNodes[0]} amplitude={amplitude / MAX_AMPLITUDE} freq={MIN_FREQ + i * FREQ_STEP} />
           {/if}
         {/each}
       </div>
 
-      <div class="freq-axis">
-        <div>{MIN_FREQ}Hz</div>
-        <div class="max-freq">{MAX_FREQ}Hz</div>
-      </div>
-
       <div class="controls">
-        <button on:click={handlePlay}>{isPlaying > 0 ? 'stop' : 'play'}</button>
+        <button on:click={() => isPlaying = !isPlaying}>{isPlaying ? 'stop' : 'play'}</button>
       </div>
 
   </div>
@@ -137,7 +129,6 @@
   }
 
   .partial-board {
-    --handle-size: 10px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -145,31 +136,28 @@
 
   .partial {
     user-select: none;
-    min-height: var(--handle-size);
   }
 
   .partial-handle {
     cursor: pointer;
-    width: var(--handle-size);
-    height: var(--handle-size);
+    width: 10px;
+    height: 10px;
+    margin: 0 auto;
     border-radius: 50%;
     background: blue;
   }
 
   .partial-body {
     width: 2px;
-    height: calc(100% - var(--handle-size));
     margin: 0 auto;
     background: blue;
   }
 
-  .freq-axis {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .max-freq {
-    transform: translateX(100%);
+  .partial-freq {
+    font-size: 10px;
+    writing-mode: vertical-rl;
+    height: 40px;
+    transform: translateX(10px) rotate(-45deg);
   }
 
   .controls {
