@@ -12,9 +12,7 @@
   const PARTIAL_BOARD_H = 300;
 
   const MAX_AMPLITUDE = 20;
-
-  let slope = 1;
-  let fundamental = 100;
+  const MAX_GAIN = 20;
 
   const partialAmplitudes = Array.from({ length: Math.floor((MAX_FREQ - MIN_FREQ) / FREQ_STEP) }, () => 0);
 
@@ -22,22 +20,22 @@
     {
       centerFreq: 490,
       bandwidth: 300,
-      gain: 20,
+      gain: 10,
     },
     {
       centerFreq: 1470,
       bandwidth: 300,
-      gain: 20,
+      gain: 10,
     },
     {
       centerFreq: 2450,
       bandwidth: 200,
-      gain: 20,
+      gain: 10,
     },
     {
       centerFreq: 3430,
       bandwidth: 200,
-      gain: 20,
+      gain: 10,
     },
   ];
 
@@ -69,6 +67,8 @@
   const onFilterMove = (filterIdx: number, dFreq: number, dGain: number) => {
     filters[filterIdx].centerFreq += dFreq;
     filters[filterIdx].gain += dGain;
+
+    if (filters[filterIdx].gain < 0) filters[filterIdx].gain = 0;
   };
 
   let draggingPartialIdx = -1;
@@ -98,17 +98,13 @@
 
 <main>
   <div>
-      <FilterBoard minFreq={MIN_FREQ} maxFreq={MAX_FREQ} filters={filters} onMove={onFilterMove} />
-
-      <div>
-        <div>Slope</div>
-        <input type="range" min="1" max="2" step="0.1" on:input={e => slope = Number(e.currentTarget.value)} value={slope}>
-      </div>
-
-      <div>
-        <div>Fundamental</div>
-        <input type="range" min="100" max="200" step="20" on:input={e => fundamental = Number(e.currentTarget.value)} value={fundamental}>
-      </div>
+      <FilterBoard
+        minFreq={MIN_FREQ}
+        maxFreq={MAX_FREQ}
+        maxGain={MAX_GAIN}
+        filters={filters}
+        onMove={onFilterMove}
+      />
 
       <div class="partial-board" style="height: {PARTIAL_BOARD_H}px">
         {#each partialAmplitudes as amplitude, i}

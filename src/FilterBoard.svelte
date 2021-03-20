@@ -4,16 +4,22 @@
   export let filters: IFilter[];
   export let minFreq: number;
   export let maxFreq: number;
+  export let maxGain: number;
   export let onMove: (filterIdx: number, dFreq: number, dGain: number) => void;
 
   let canvas: HTMLCanvasElement;
 
   let draggingFilterIdx = -1;
 
+  $: ctx = canvas?.getContext('2d');
+  $: width = canvas?.width || 0;
+  $: height = canvas?.height || 0;
+
   $: events = draggingFilterIdx >= 0 ? ({
     onPointerMove(e: MouseEvent) {
-      const { width } = canvas;
-      onMove(draggingFilterIdx, (maxFreq - minFreq) / width * e.movementX, 0 && e.movementY);
+      const dx = (maxFreq - minFreq) / width * e.movementX;
+      const dy = maxGain / height * e.movementY;
+      onMove(draggingFilterIdx, dx, -dy);
     },
     onPointerUp() {
       draggingFilterIdx = -1;
@@ -26,18 +32,15 @@
   const RESOLUTION = 4;
   const LINE_WIDTH = 3;
 
-  $: ctx = canvas && canvas.getContext('2d');
-
   $: if (ctx) {
     ctx.lineWidth = LINE_WIDTH;
   }
 
   $: if (ctx) {
-    const { width, height } = canvas;
-
     const size = Math.floor(width / RESOLUTION);
     const output = Array(size);
     const freqScaling = (maxFreq - minFreq) / size;
+    const gainScaling = height / maxGain;
 
     for (let i = 0; i < size; i += 1) {
       const freq = i * freqScaling  + minFreq;
@@ -45,7 +48,7 @@
       output[i] = 0;
 
       for (const filter of filters) {
-        output[i] += filter.gain * 5 * Math.exp(-Math.pow(freq - filter.centerFreq, 2) / Math.pow(filter.bandwidth / 2, 2))
+        output[i] += filter.gain * gainScaling * Math.exp(-Math.pow(freq - filter.centerFreq, 2) / Math.pow(filter.bandwidth / 2, 2))
       }
     }
 
@@ -70,7 +73,7 @@
 
 <div class="wrap">
   {#each filters as { centerFreq, gain }, i}
-    <div class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain}px" on:pointerdown={() => draggingFilterIdx = i} />
+    <div class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain / maxGain * 100}%" on:pointerdown={() => draggingFilterIdx = i} />
   {/each}
   <canvas bind:this={canvas} width="800" height="200" />
 </div>
