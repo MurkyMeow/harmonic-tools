@@ -6,6 +6,7 @@ body {
   background: #0d0e0f;
 
   --color-orange: #ffa500;
+  --color-gray: #555d64;
   --board-spacing: 30px;
   --board-border-radius: 10px;
 }

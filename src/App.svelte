@@ -26,7 +26,7 @@
   // react on length changes
   $: partialAmplitudes.length = Math.floor((maxFreq - minFreq) / freqStep);
 
-  const filters = [
+  let filters = [
     {
       centerFreq: 490,
       bandwidth: 300,
@@ -107,8 +107,8 @@
   <div class="settings">
     <div class="settings-group">Objects</div>
 
-    <details>
-      <summary>Harmonic series #0</summary>
+    <details class="object">
+      <summary class="object-title">Harmonic series #0</summary>
       <div>
         Min frequency: <input type="number" min="0" bind:value={minFreq} />
       </div>
@@ -121,8 +121,11 @@
     </details>
 
     {#each filters as { centerFreq, gain }, i}
-      <details>
-        <summary>Filter #{i}</summary>
+      <details class="object">
+        <summary class="object-title">
+          Filter
+          <button class="object-remove" on:click={() => filters = filters.filter((_, j) => i !== j)}>remove</button>
+        </summary>
         <div class="field">
           <span>{`Center: ${centerFreq}Hz`}</span>
           <input type="range" min={minFreq} max={maxFreq} bind:value={centerFreq} />
@@ -183,12 +186,12 @@
     flex-direction: column;
     width: 100%;
     max-width: 500px;
-    padding: 10px;
+    padding: 10px 10px 0;
     border: 2px solid var(--color-orange);
   }
 
   .settings-group {
-    color: #555d64;
+    color: var(--color-gray);
     margin-bottom: 10px;
   }
 
@@ -196,9 +199,30 @@
     display: flex;
     align-items: center;
   }
-
   .field span {
     width: 150px;
+  }
+
+  .object[open] .object-title::before {
+    content: '-';
+  }
+  .object-title {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    border-top: 1px solid var(--color-gray);
+  }
+  .object-title::before {
+    content: '+';
+    margin-right: 5px;
+  }
+  .object-remove {
+    font-size: 14px;
+    color: #FF3B6B;
+    margin-left: auto;
+    border: 2px solid #FF3B6B;
+    padding: 3px 8px;
   }
 
   .view {
