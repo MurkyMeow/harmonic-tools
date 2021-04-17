@@ -60,7 +60,7 @@
         ctx.lineTo(i * RESOLUTION, height - output - LINE_WIDTH);
       }
 
-      ctx.stroke();
+      ctx.fill();
       ctx.closePath();
     });
   }
@@ -69,9 +69,15 @@
     width = wrap.clientWidth;
     height = wrap.clientHeight;
 
-    // ctx.lineWidth resets after resize, set it again
+    // these reset after resize, set them again
     tick().then(() => {
-      if (ctx) ctx.lineWidth = LINE_WIDTH;
+      if (ctx) {
+        ctx.lineWidth = LINE_WIDTH;
+        const gradient = ctx.createLinearGradient(0, -300, 0, 300);
+        gradient.addColorStop(0, '#565f77');
+        gradient.addColorStop(1, '#16181d');
+        ctx.fillStyle = gradient;
+      }
     });
   };
 
@@ -89,7 +95,7 @@
 
 <div class="wrap" bind:this={wrap}>
   {#each filters as { centerFreq, gain }, i}
-    <div class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain / maxGain * 100}%" on:pointerdown={() => draggingFilterIdx = i} />
+    <button class="handle" style="left: {(centerFreq - minFreq) / (maxFreq - minFreq) * 100}%; bottom: {gain / maxGain * 100}%" on:pointerdown={() => draggingFilterIdx = i} />
   {/each}
   <canvas bind:this={canvas} width={width} height={height} />
 </div>
@@ -98,6 +104,8 @@
   .wrap {
     position: relative;
     height: 200px;
+    background: #131417;
+    border-radius: var(--board-border-radius);
   }
 
   .handle {
@@ -107,8 +115,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: orange;
-    border: 1px solid #000;
+    background: var(--color-orange);
     transform: translate(-50%, 0);
   }
 </style>

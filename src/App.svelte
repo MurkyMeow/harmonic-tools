@@ -5,14 +5,18 @@
   import FilterBoard from './FilterBoard.svelte';
   import OscillatorNode from './OscillatorNode.svelte';
 
+  import SvgSprite from './svg/SvgSprite.svelte';
+  import SvgIcon from './svg/SvgIcon.svelte';
+  import { IC_PLAY, IC_PAUSE } from './svg/icons';
+
   let minFreq = 100;
-  let maxFreq = 3000;
-  let freqStep = 50;
+  let maxFreq = 4000;
+  let freqStep = 100;
 
   const MAX_AMPLITUDE = 20;
   const MAX_GAIN = 20;
 
-  const PARTIAL_BOARD_H = 300;
+  const PARTIAL_BOARD_H = 250;
 
   let partialAmplitudes = Array.from({ length: Math.floor((maxFreq - minFreq) / freqStep) }, () => 0);
 
@@ -32,11 +36,6 @@
     },
     {
       centerFreq: 2450,
-      bandwidth: 200,
-      gain: 10,
-    },
-    {
-      centerFreq: 3430,
       bandwidth: 200,
       gain: 10,
     },
@@ -99,6 +98,8 @@
   on:pointerleave={partialEvents?.onPointerLeave}
 />
 
+<SvgSprite />
+
 <main>
   <div>
       <div class="options">
@@ -135,7 +136,9 @@
       </div>
 
       <div class="controls">
-        <button on:click={() => isPlaying = !isPlaying}>{isPlaying ? 'stop' : 'play'}</button>
+        <button class="toggle-btn" on:click={() => isPlaying = !isPlaying}>
+          <SvgIcon class="toggle-icon" icon={isPlaying ? IC_PAUSE : IC_PLAY} />
+        </button>
       </div>
 
   </div>
@@ -144,7 +147,7 @@
 <style>
   main {
     max-width: 1200px;
-    padding: 0 20px;
+    padding: 50px 20px;
     margin: auto;
   }
 
@@ -157,9 +160,13 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    background: #122005;
+    border-radius: var(--board-border-radius);
+    margin-top: 30px;
   }
 
   .partial {
+    position: relative;
     user-select: none;
   }
 
@@ -167,26 +174,40 @@
     cursor: pointer;
     width: 10px;
     height: 10px;
-    margin: 0 auto;
-    border-radius: 50%;
-    background: blue;
+    background: linear-gradient(to bottom, #4de601, #227200);
   }
 
   .partial-body {
-    width: 2px;
-    margin: 0 auto;
-    background: blue;
+    width: 10px;
+    background: linear-gradient(to bottom, #227200, #122f03);
   }
 
   .partial-freq {
-    font-size: 10px;
+    position: absolute;
+    top: 100%;
+    font-size: 12px;
     writing-mode: vertical-rl;
     height: 40px;
     transform: translateX(10px) rotate(-45deg);
   }
 
   .controls {
-    text-align: center;
     margin-top: 50px;
+    padding: 15px 0;
+    border: 2px solid var(--color-orange);
+  }
+
+  .toggle-btn {
+    display: block;
+    padding: 10px;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 2px solid var(--color-orange);
+  }
+
+  .toggle-btn :global(.toggle-icon) {
+    fill: #fff;
+    width: 18px;
+    height: 18px;
   }
 </style>
