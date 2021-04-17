@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick, onMount } from 'svelte';
+  import { getFiltersGainAtFreq } from './lib/filter';
 
   import type { IFilter } from './types';
 
@@ -7,6 +8,7 @@
   export let minFreq: number;
   export let maxFreq: number;
   export let maxGain: number;
+  export let height: number;
   export let onMove: (filterIdx: number, dFreq: number, dGain: number) => void;
 
   let canvas: HTMLCanvasElement;
@@ -15,7 +17,6 @@
   let draggingFilterIdx = -1;
 
   let width = 0;
-  let height = 0;
 
   $: events = draggingFilterIdx >= 0 ? ({
     onPointerMove(e: MouseEvent) {
@@ -48,16 +49,10 @@
       ctx.beginPath()
       ctx.moveTo(0, height);
 
-      for (let i = 0; i < size; i += 1) {
+      for (let i = 0; i < size; i += 2) {
         const freq = i * freqScaling + minFreq;
-
-        let output = 0;
-
-        for (const filter of filters) {
-          output += filter.gain * gainScaling * Math.exp(-Math.pow(freq - filter.centerFreq, 2) / Math.pow(filter.bandwidth / 2, 2))
-        }
-
-        ctx.lineTo(i * RESOLUTION, height - output - LINE_WIDTH);
+        const gain = gainScaling * getFiltersGainAtFreq(filters, freq);
+        ctx.lineTo(i * RESOLUTION, height - gain - LINE_WIDTH);
       }
 
       ctx.fill();
@@ -67,7 +62,6 @@
 
   const onResize = () => {
     width = wrap.clientWidth;
-    height = wrap.clientHeight;
 
     // these reset after resize, set them again
     tick().then(() => {
@@ -103,7 +97,6 @@
 <style>
   .wrap {
     position: relative;
-    height: 200px;
     background: #131417;
     border-radius: var(--board-border-radius);
   }

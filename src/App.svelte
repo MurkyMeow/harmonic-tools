@@ -9,6 +9,8 @@
   import SvgIcon from './svg/SvgIcon.svelte';
   import { IC_PLAY, IC_PAUSE } from './svg/icons';
 
+  import { getFiltersGainAtFreq } from './lib/filter';
+
   let minFreq = 100;
   let maxFreq = 4000;
   let freqStep = 100;
@@ -17,6 +19,7 @@
   const MAX_GAIN = 20;
 
   const PARTIAL_BOARD_H = 250;
+  const FILTER_BOARD_H = 200;
 
   let partialAmplitudes = Array.from({ length: Math.floor((maxFreq - minFreq) / freqStep) }, () => 0);
 
@@ -144,14 +147,20 @@
         maxFreq={maxFreq}
         maxGain={MAX_GAIN}
         filters={filters}
+        height={FILTER_BOARD_H}
         onMove={onFilterMove}
       />
 
       <div class="partial-board" style="height: {PARTIAL_BOARD_H}px">
         {#each partialAmplitudes as amplitude, i}
           <div class="partial">
+            {#if amplitude > 0}
+              <div class="partial-gain" style={`height: ${(FILTER_BOARD_H / MAX_GAIN) * getFiltersGainAtFreq(filters, minFreq + i * freqStep)}px`}></div>
+            {/if}
             <div class="partial-handle" on:pointerdown={() => draggingPartialIdx = i}></div>
-            <div class="partial-body" style={amplitude > 0 ? `height: ${amplitude / MAX_AMPLITUDE * PARTIAL_BOARD_H}px` : undefined}></div>
+            {#if amplitude > 0}
+              <div class="partial-body" style={`height: ${amplitude / MAX_AMPLITUDE * PARTIAL_BOARD_H}px`}></div>
+            {/if}
             <div class="partial-freq">{minFreq + i * freqStep}</div>
           </div>
           {#if isPlaying && amplitude > 0}
@@ -209,17 +218,24 @@
   .partial {
     position: relative;
     user-select: none;
+    width: 10px;
+  }
+
+  .partial-gain {
+    opacity: 0.25;
+    width: 100%;
+    background: #227200;
   }
 
   .partial-handle {
     cursor: pointer;
-    width: 10px;
+    width: 100%;
     height: 10px;
     background: linear-gradient(to bottom, #4de601, #227200);
   }
 
   .partial-body {
-    width: 10px;
+    width: 100%;
     background: linear-gradient(to bottom, #227200, #122f03);
   }
 
