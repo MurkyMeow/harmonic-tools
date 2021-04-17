@@ -101,19 +101,44 @@
 <SvgSprite />
 
 <main>
-  <div>
-      <div class="options">
-        <div>
-          Min frequency: <input type="number" min="0" bind:value={minFreq} />
-        </div>
-        <div>
-          Max frequency: <input type="number" min="0" bind:value={maxFreq} />
-        </div>
-        <div>
-          Frequency step: <input type="number" min="1" bind:value={freqStep} />
-        </div>
-      </div>
+  <div class="settings">
+    <div class="settings-group">Objects</div>
 
+    <details>
+      <summary>Harmonic series #0</summary>
+      <div>
+        Min frequency: <input type="number" min="0" bind:value={minFreq} />
+      </div>
+      <div>
+        Max frequency: <input type="number" min="0" bind:value={maxFreq} />
+      </div>
+      <div>
+        Frequency step: <input type="number" min="1" bind:value={freqStep} />
+      </div>
+    </details>
+
+    {#each filters as { centerFreq, gain }, i}
+      <details>
+        <summary>Filter #{i}</summary>
+        <div class="field">
+          <span>{`Center: ${centerFreq}Hz`}</span>
+          <input type="range" min={minFreq} max={maxFreq} bind:value={centerFreq} />
+        </div>
+        <div class="field">
+          <span>{`Gain: ${gain}dB`}</span>
+          <input type="range" min={0} max={MAX_GAIN} bind:value={gain} />
+        </div>
+      </details>
+    {/each}
+    
+    <div class="controls">
+      <button class="toggle-btn" on:click={() => isPlaying = !isPlaying}>
+        <SvgIcon class="toggle-icon" icon={isPlaying ? IC_PAUSE : IC_PLAY} />
+      </button>
+    </div>
+  </div>
+
+  <div class="view">
       <FilterBoard
         minFreq={minFreq}
         maxFreq={maxFreq}
@@ -135,25 +160,41 @@
         {/each}
       </div>
 
-      <div class="controls">
-        <button class="toggle-btn" on:click={() => isPlaying = !isPlaying}>
-          <SvgIcon class="toggle-icon" icon={isPlaying ? IC_PAUSE : IC_PLAY} />
-        </button>
-      </div>
-
   </div>
 </main>
 
 <style>
   main {
-    max-width: 1200px;
+    display: flex;
     padding: 50px 20px;
-    margin: auto;
   }
 
-  .options {
-    text-align: center;
-    margin-bottom: 20px;
+  .settings {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    border: 2px solid var(--color-orange);
+  }
+
+  .settings-group {
+    color: #555d64;
+    margin-bottom: 10px;
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+  }
+
+  .field span {
+    width: 150px;
+  }
+
+  .view {
+    flex: 1;
+    margin-left: var(--board-spacing);
   }
 
   .partial-board {
@@ -162,7 +203,7 @@
     align-items: flex-end;
     background: #122005;
     border-radius: var(--board-border-radius);
-    margin-top: 30px;
+    margin-top: var(--board-spacing);
   }
 
   .partial {
@@ -192,9 +233,9 @@
   }
 
   .controls {
-    margin-top: 50px;
+    margin-top: auto;
     padding: 15px 0;
-    border: 2px solid var(--color-orange);
+    border-top: 2px solid var(--color-orange);
   }
 
   .toggle-btn {
