@@ -76,6 +76,10 @@
     if (filters[filterIdx].gain < 0) filters[filterIdx].gain = 0;
   };
 
+  const onFilterAdd = (freq: number) => {
+    filters = [...filters, { centerFreq: freq, gain: 3, bandwidth: 200 }];
+  };
+
   const onFilterRemove = (filterIdx: number) => {
     filters = filters.filter((_, i) => i !== filterIdx);
   };
@@ -158,6 +162,7 @@
         filters={filters}
         height={FILTER_BOARD_H}
         onMove={onFilterMove}
+        onAdd={onFilterAdd}
         onRemove={onFilterRemove}
       />
 
