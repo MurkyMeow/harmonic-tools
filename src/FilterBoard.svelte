@@ -10,6 +10,7 @@
   export let maxGain: number;
   export let height: number;
   export let onMove: (filterIdx: number, dFreq: number, dGain: number) => void;
+  export let onRemove: (filterIdx: number) => void;
 
   let canvas: HTMLCanvasElement;
   let wrap: HTMLElement;
@@ -25,6 +26,9 @@
       onMove(draggingFilterIdx, dx, -dy);
     },
     onPointerUp() {
+      if (filters[draggingFilterIdx].gain < 1) {
+        onRemove(draggingFilterIdx);
+      }
       draggingFilterIdx = -1;
     },
     onPointerLeave() {

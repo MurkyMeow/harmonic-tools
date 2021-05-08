@@ -76,6 +76,10 @@
     if (filters[filterIdx].gain < 0) filters[filterIdx].gain = 0;
   };
 
+  const onFilterRemove = (filterIdx: number) => {
+    filters = filters.filter((_, i) => i !== filterIdx);
+  };
+
   let draggingPartialIdx = -1;
 
   $: partialEvents = draggingPartialIdx > 0 ? ({
@@ -154,6 +158,7 @@
         filters={filters}
         height={FILTER_BOARD_H}
         onMove={onFilterMove}
+        onRemove={onFilterRemove}
       />
 
       <div class="partial-board" style="height: {PARTIAL_BOARD_H}px">
