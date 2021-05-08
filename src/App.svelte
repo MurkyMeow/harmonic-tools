@@ -127,11 +127,11 @@
           <button class="object-remove" on:click={() => filters = filters.filter((_, j) => i !== j)}>remove</button>
         </summary>
         <div class="field">
-          <span>{`Center: ${centerFreq}Hz`}</span>
+          <span>{`Center: ${centerFreq.toFixed(0)}Hz`}</span>
           <input type="range" min={minFreq} max={maxFreq} bind:value={centerFreq} />
         </div>
         <div class="field">
-          <span>{`Gain: ${gain}dB`}</span>
+          <span>{`Gain: ${gain.toFixed(0)}dB`}</span>
           <input type="range" min={0} max={MAX_GAIN} bind:value={gain} />
         </div>
       </details>
