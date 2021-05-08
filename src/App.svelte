@@ -107,35 +107,37 @@
   <div class="settings">
     <div class="settings-group">Objects</div>
 
-    <details class="object">
-      <summary class="object-title">Harmonic series #0</summary>
-      <div>
-        Min frequency: <input type="number" min="0" bind:value={minFreq} />
-      </div>
-      <div>
-        Max frequency: <input type="number" min="0" bind:value={maxFreq} />
-      </div>
-      <div>
-        Frequency step: <input type="number" min="1" bind:value={freqStep} />
-      </div>
-    </details>
-
-    {#each filters as { centerFreq, gain }, i}
+    <div class="settings-objects">
       <details class="object">
-        <summary class="object-title">
-          Filter
-          <button class="object-remove" on:click={() => filters = filters.filter((_, j) => i !== j)}>remove</button>
-        </summary>
-        <div class="field">
-          <span>{`Center: ${centerFreq.toFixed(0)}Hz`}</span>
-          <input type="range" min={minFreq} max={maxFreq} bind:value={centerFreq} />
+        <summary class="object-title">Harmonic series #0</summary>
+        <div>
+          Min frequency: <input type="number" min="0" bind:value={minFreq} />
         </div>
-        <div class="field">
-          <span>{`Gain: ${gain.toFixed(0)}dB`}</span>
-          <input type="range" min={0} max={MAX_GAIN} bind:value={gain} />
+        <div>
+          Max frequency: <input type="number" min="0" bind:value={maxFreq} />
+        </div>
+        <div>
+          Frequency step: <input type="number" min="1" bind:value={freqStep} />
         </div>
       </details>
-    {/each}
+
+      {#each filters as { centerFreq, gain }, i}
+        <details class="object">
+          <summary class="object-title">
+            Filter
+            <button class="object-remove" on:click={() => filters = filters.filter((_, j) => i !== j)}>remove</button>
+          </summary>
+          <div class="field">
+            <span>{`Center: ${centerFreq.toFixed(0)}Hz`}</span>
+            <input type="range" min={minFreq} max={maxFreq} bind:value={centerFreq} />
+          </div>
+          <div class="field">
+            <span>{`Gain: ${gain.toFixed(0)}dB`}</span>
+            <input type="range" min={0} max={MAX_GAIN} bind:value={gain} />
+          </div>
+        </details>
+      {/each}
+    </div>
     
     <div class="controls">
       <button class="toggle-btn" on:click={() => isPlaying = !isPlaying}>
@@ -188,6 +190,11 @@
     max-width: 500px;
     padding: 10px 10px 0;
     border: 2px solid var(--color-orange);
+  }
+
+  .settings-objects {
+    height: 370px;
+    overflow-y: scroll;
   }
 
   .settings-group {
